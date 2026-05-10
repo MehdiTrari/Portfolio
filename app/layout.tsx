@@ -1,13 +1,33 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
+import { siteConfig } from "./site-config";
 
 export const metadata: Metadata = {
-  title: "Mehdi - Portfolio",
-  description:
-    "Portfolio de Mehdi Trari, développeur full-stack orienté back-end PHP/Symfony avec une culture cyber.",
+  metadataBase: new URL(siteConfig.siteUrl),
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/portfolio-mark.svg",
+  },
+  openGraph: {
+    type: "website",
+    url: siteConfig.siteUrl,
+    siteName: siteConfig.name,
+    title: siteConfig.title,
+    description: siteConfig.description,
+    locale: "fr_FR",
+  },
+  twitter: {
+    card: "summary",
+    title: siteConfig.title,
+    description: siteConfig.description,
   },
 };
 

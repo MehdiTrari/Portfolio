@@ -33,24 +33,20 @@ Le serveur devra contenir :
 
 ## Choisir le nom de domaine
 
-Tu dois acheter un nom de domaine si tu veux une URL professionnelle.
-
-Options possibles :
+Tu as deja les domaines suivants pour ce projet :
 
 - `mehditrari.com` : meilleur choix principal, clair, professionnel, facile a associer a ton nom.
-- `mehditrari.fr` : bon choix si tu veux cibler surtout la France.
-- `mehditrr.com` : plus court, mais moins lisible et moins evident a retenir.
+- `mehditrari.fr` : bon domaine secondaire pour le marche francais.
+- `mehditrari.org` : utile si tu veux aussi proteger la marque, mais pas necessaire pour le portfolio.
+- `mehditrari.store` : peu pertinent pour ce portfolio, a garder seulement en reserve.
 
 Recommandation :
 
 ```text
-Acheter mehditrari.com en domaine principal.
-Acheter aussi mehditrari.fr si le budget le permet, puis le rediriger vers mehditrari.com.
+Utiliser mehditrari.com comme domaine canonique.
+Rediriger mehditrari.fr vers mehditrari.com.
+Laisser mehditrari.org et mehditrari.store hors scope pour le premier deploiement.
 ```
-
-Tu peux acheter le domaine chez un registrar comme OVHcloud, Gandi, Ionos, Namecheap, Cloudflare Registrar ou autre.
-
-Avant achat, il faut verifier que le domaine est disponible. Si `mehditrari.com` est disponible, prends-le en priorite.
 
 ## Pre-requis
 
@@ -221,11 +217,7 @@ target: dev
 
 En production, il faut utiliser le stage `runner` du `Dockerfile`.
 
-Sur le VPS, cree un fichier `docker-compose.prod.yml` :
-
-```bash
-nano docker-compose.prod.yml
-```
+Le depot contient deja un fichier `docker-compose.prod.yml`.
 
 Contenu recommande :
 
@@ -242,6 +234,7 @@ services:
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_SITE_URL: "https://mehditrari.com"
 ```
 
 Le port est lie a `127.0.0.1` pour eviter d'exposer directement Next.js sur Internet. Nginx sera le seul point d'entree public.
@@ -276,20 +269,22 @@ docker logs -f portfolio
 
 ## Configuration Nginx
 
+Le depot contient deja un template de depart dans `infra/nginx/portfolio.http.conf`.
+
 Cree une configuration Nginx :
 
 ```bash
 sudo nano /etc/nginx/sites-available/portfolio
 ```
 
-Contenu pour `mehditrari.com` :
+Contenu initial pour `mehditrari.com` et `mehditrari.fr` :
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
 
-    server_name mehditrari.com www.mehditrari.com;
+    server_name mehditrari.com www.mehditrari.com mehditrari.fr www.mehditrari.fr;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -341,7 +336,7 @@ http://mehditrari.com
 Quand le DNS est bien propage et que HTTP fonctionne :
 
 ```bash
-sudo certbot --nginx -d mehditrari.com -d www.mehditrari.com
+sudo certbot --nginx -d mehditrari.com -d www.mehditrari.com -d mehditrari.fr -d www.mehditrari.fr
 ```
 
 Certbot va :
@@ -373,6 +368,7 @@ Recommandation SEO :
 ```text
 Garder mehditrari.com comme domaine canonique.
 Rediriger www.mehditrari.com vers mehditrari.com.
+Rediriger aussi mehditrari.fr et www.mehditrari.fr vers mehditrari.com.
 ```
 
 Une configuration Nginx possible :
@@ -381,14 +377,14 @@ Une configuration Nginx possible :
 server {
     listen 80;
     listen [::]:80;
-    server_name mehditrari.com www.mehditrari.com;
+    server_name mehditrari.com www.mehditrari.com mehditrari.fr www.mehditrari.fr;
     return 301 https://mehditrari.com$request_uri;
 }
 
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name www.mehditrari.com;
+    server_name www.mehditrari.com mehditrari.fr www.mehditrari.fr;
 
     ssl_certificate /etc/letsencrypt/live/mehditrari.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/mehditrari.com/privkey.pem;
@@ -452,19 +448,13 @@ docker image prune -f
 
 ## Script de deploiement simple
 
-Tu peux creer un script pour eviter de retaper les commandes.
-
-Sur le VPS :
-
-```bash
-nano /var/www/portfolio/deploy.sh
-```
+Le depot contient deja un script `deploy.sh` pour eviter de retaper les commandes.
 
 Contenu :
 
 ```bash
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 cd /var/www/portfolio
 git pull origin main
@@ -540,6 +530,7 @@ Checklist :
 - `http://mehditrari.com` repond ;
 - `https://mehditrari.com` repond ;
 - `www.mehditrari.com` redirige correctement ;
+- `mehditrari.fr` redirige correctement ;
 - le cadenas HTTPS est visible dans le navigateur ;
 - `docker ps` montre le conteneur `portfolio` actif ;
 - `docker logs portfolio` ne montre pas d'erreur bloquante ;
@@ -707,7 +698,7 @@ sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
 
-sudo certbot --nginx -d mehditrari.com -d www.mehditrari.com
+sudo certbot --nginx -d mehditrari.com -d www.mehditrari.com -d mehditrari.fr -d www.mehditrari.fr
 sudo certbot renew --dry-run
 ```
 
@@ -725,5 +716,5 @@ docker compose -f docker-compose.prod.yml up -d --build
 - Le fichier `docker-compose.yml` du projet sert au developpement local.
 - Pour la production, utilise `docker-compose.prod.yml`.
 - Garde le domaine principal stable pour ton CV et LinkedIn.
-- Si tu achetes plusieurs domaines, choisis un domaine canonique et redirige les autres vers celui-ci.
+- Si tu possedes plusieurs domaines, choisis un domaine canonique et redirige les autres vers celui-ci.
 - Pour un portfolio personnel, `mehditrari.com` est le choix le plus propre.
