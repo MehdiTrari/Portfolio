@@ -13,4 +13,4 @@ jobs:
       - name: Deploy on VPS
         run: |
           cd /var/www/portfolio
-          ./deploy.sh
+          sudo -n ./deploy.sh
