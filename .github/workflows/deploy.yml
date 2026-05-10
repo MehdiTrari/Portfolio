@@ -1,0 +1,16 @@
+name: Deploy Portfolio
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, portfolio]
+
+    steps:
+      - name: Deploy on VPS
+        run: |
+          cd /var/www/portfolio
+          ./deploy.sh
